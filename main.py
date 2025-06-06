@@ -127,5 +127,20 @@ def start_background_thread():
     thread.start()
 
 if __name__ == "__main__":
-    start_background_thread()
+    # --- ADD THIS BLOCK ---
+    print("Attempting to generate initial Apriori rules on startup...")
+    try:
+        # Check if rules file exists or is empty before trying to generate
+        if not os.path.exists(RULES_FILE_PATH) or os.path.getsize(RULES_FILE_PATH) == 0:
+            print(f"'{RULES_FILE_PATH}' not found or is empty. Generating rules now.")
+            update_apriori_rules()
+        else:
+            # Optionally, you could still regenerate here if you want fresh rules on every deploy
+            # update_apriori_rules()
+            print(f"'{RULES_FILE_PATH}' already exists and is not empty. Skipping initial generation.")
+    except Exception as e:
+        print(f"Error during initial rule generation on startup: {e}")
+    # --- END ADDITION ---
+
+    start_background_thread() # This will now watch for *subsequent* changes
     uvicorn.run(app, host="0.0.0.0", port=int(os.getenv("PORT", 8000)))
