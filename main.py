@@ -29,7 +29,7 @@ app.add_middleware(
 )
 
 # MongoDB Connection
-MONGODB_URI = os.getenv("MONGODB_URI")
+MONGODB_URI = os.getenv("mongodb+srv://tijesunimiidowu16:M7UN0QTHvX6P5ktw@cluster0.x5257.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
 client = MongoClient(MONGODB_URI)
 db = client["ecommerce"]
 transactions_collection = db["transactions"]
