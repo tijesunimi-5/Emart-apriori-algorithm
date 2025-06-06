@@ -3,11 +3,12 @@ from pymongo import MongoClient
 from apyori import apriori
 import json
 import os
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import threading
 import uvicorn
 from dotenv import load_dotenv
+import time
 
 # Load environment variables from .env file
 load_dotenv()
@@ -24,30 +25,27 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# MongoDB Connection (use environment variable for URI)
+# MongoDB Connection
 MONGODB_URI = os.getenv("MONGODB_URI")
 client = MongoClient(MONGODB_URI)
 db = client["ecommerce"]
 transactions_collection = db["transactions"]
 
-# Output directory (for Render, use a temporary or persistent disk path)
+# Output directory
 OUTPUT_DIR = os.getenv("OUTPUT_DIR", "/app/rules")
 if not os.path.exists(OUTPUT_DIR):
     os.makedirs(OUTPUT_DIR)
 RULES_FILE_PATH = os.path.join(OUTPUT_DIR, "apriori_rules.json")
 
-# Fetch transactions (unchanged)
 def fetch_transactions():
     transactions_data = transactions_collection.find({}, {"items": 1, "_id": 0})
     transactions = [[item['productId'] for item in tx['items']] for tx in transactions_data]
     print(f"Fetched transactions: {transactions}")
     return transactions
 
-# Update Apriori rules (unchanged)
 def update_apriori_rules():
     transactions = fetch_transactions()
     print(f"Fetched {len(transactions)} transactions for Apriori")
-
     rules = apriori(
         transactions,
         min_support=0.001,
@@ -55,7 +53,6 @@ def update_apriori_rules():
         min_lift=1.0,
         min_length=2
     )
-
     rules_list = []
     for rule in list(rules):
         for ordered_stat in rule.ordered_statistics:
@@ -66,39 +63,36 @@ def update_apriori_rules():
                 'confidence': ordered_stat.confidence,
                 'lift': ordered_stat.lift
             })
-
     with open(RULES_FILE_PATH, 'w') as file:
         json.dump(rules_list, file, indent=2)
     print(f"Updated {RULES_FILE_PATH} with {len(rules_list)} rules")
     return rules_list
 
-# Watch transactions (run in a separate thread)
 def watch_transactions():
     print("Starting MongoDB Change Stream to watch for new transactions...")
     rules_generated = False
     previous_user_id = None
-    try:
-        with transactions_collection.watch() as stream:
-            for change in stream:
-                print("Change detected:", change)
-                if change['operationType'] in ['insert', 'update']:
-                    print("New transaction detected...")
-                    if not rules_generated:
-                        print("Generating initial Apriori rules...")
-                        update_apriori_rules()
-                        rules_generated = True
-                    else:
-                        transaction = transactions_collection.find_one({"_id": change["documentKey"]["_id"]})
-                        if transaction and "userId" in transaction and transaction["userId"] != previous_user_id:
-                            print("New cart session detected, regenerating Apriori rules...")
+    while True:
+        try:
+            with transactions_collection.watch() as stream:
+                for change in stream:
+                    print("Change detected:", change)
+                    if change['operationType'] in ['insert', 'update']:
+                        print("New transaction detected...")
+                        if not rules_generated:
+                            print("Generating initial Apriori rules...")
                             update_apriori_rules()
-                        previous_user_id = transaction.get("userId") if transaction else None
-    except Exception as e:
-        print(f"Error in Change Stream: {e}")
-    finally:
-        client.close()
+                            rules_generated = True
+                        else:
+                            transaction = transactions_collection.find_one({"_id": change["documentKey"]["_id"]})
+                            if transaction and "userId" in transaction and transaction["userId"] != previous_user_id:
+                                print("New cart session detected, regenerating Apriori rules...")
+                                update_apriori_rules()
+                            previous_user_id = transaction.get("userId") if transaction else None
+        except Exception as e:
+            print(f"Change Stream error: {e}. Retrying in 5 seconds...")
+            time.sleep(5)
 
-# FastAPI endpoints
 @app.get("/api/rules")
 async def get_rules():
     try:
@@ -125,5 +119,4 @@ def start_background_thread():
 
 if __name__ == "__main__":
     start_background_thread()
-    import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=int(os.getenv("PORT", 8000)))
