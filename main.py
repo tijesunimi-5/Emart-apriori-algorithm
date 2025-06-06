@@ -106,19 +106,18 @@ async def get_rules():
             rules = json.load(file)
         return rules
     except FileNotFoundError:
-        raise HTTPException(status_code=404, detail="Rules not yet generated")
+        return {"error": "Rules not yet generated"}, 404
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        return {"error": str(e)}, 500
 
 @app.post("/api/update-rules")
 async def trigger_update():
     try:
         rules = update_apriori_rules()
-        return {"message": "Rules updated successfully", "rules": rules}
+        return {"message": "Rules updated successfully", "rules": rules}, 200
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        return {"error": str(e)}, 500
 
-# Start the Change Stream in a background thread
 def start_background_thread():
     thread = threading.Thread(target=watch_transactions)
     thread.daemon = True
@@ -126,4 +125,5 @@ def start_background_thread():
 
 if __name__ == "__main__":
     start_background_thread()
+    import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=int(os.getenv("PORT", 8000)))
