@@ -19,7 +19,11 @@ app = FastAPI()
 # Enable CORS for Vercel frontend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[os.getenv("http://localhost:3000", "https://e-mart-rho.vercel.app")],
+    # Directly list all allowed origins here
+    allow_origins=[
+        "http://localhost:3000",         # For your local development frontend
+        "https://e-mart-rho.vercel.app"  # For your deployed Vercel frontend
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
