@@ -93,6 +93,11 @@ def watch_transactions():
             print(f"Change Stream error: {e}. Retrying in 5 seconds...")
             time.sleep(5)
 
+# Add root endpoint
+@app.get("/")
+async def root():
+    return {"message": "Welcome to the E-Mart Apriori API. Use /api/rules to get rules or /api/update-rules to update them."}
+
 @app.get("/api/rules")
 async def get_rules():
     try:
