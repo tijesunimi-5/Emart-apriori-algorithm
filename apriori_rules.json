@@ -1,0 +1,1577 @@
+[
+  {
+    "antecedents": [],
+    "consequents": [
+      "7"
+    ],
+    "support": 0.21287128712871287,
+    "confidence": 0.21287128712871287,
+    "lift": 1.0
+  },
+  {
+    "antecedents": [
+      "11"
+    ],
+    "consequents": [
+      "3"
+    ],
+    "support": 0.024752475247524754,
+    "confidence": 0.21739130434782608,
+    "lift": 1.7565217391304349
+  },
+  {
+    "antecedents": [
+      "3"
+    ],
+    "consequents": [
+      "11"
+    ],
+    "support": 0.024752475247524754,
+    "confidence": 0.2,
+    "lift": 1.7565217391304349
+  },
+  {
+    "antecedents": [
+      "15"
+    ],
+    "consequents": [
+      "6"
+    ],
+    "support": 0.024752475247524754,
+    "confidence": 0.20833333333333334,
+    "lift": 1.5029761904761905
+  },
+  {
+    "antecedents": [
+      "15"
+    ],
+    "consequents": [
+      "7"
+    ],
+    "support": 0.034653465346534656,
+    "confidence": 0.2916666666666667,
+    "lift": 1.3701550387596901
+  },
+  {
+    "antecedents": [
+      "6"
+    ],
+    "consequents": [
+      "2"
+    ],
+    "support": 0.0297029702970297,
+    "confidence": 0.21428571428571425,
+    "lift": 1.3963133640552994
+  },
+  {
+    "antecedents": [
+      "9"
+    ],
+    "consequents": [
+      "2"
+    ],
+    "support": 0.0297029702970297,
+    "confidence": 0.23076923076923075,
+    "lift": 1.5037220843672456
+  },
+  {
+    "antecedents": [
+      "1",
+      "12"
+    ],
+    "consequents": [
+      "14"
+    ],
+    "support": 0.009900990099009901,
+    "confidence": 0.5,
+    "lift": 4.391304347826087
+  },
+  {
+    "antecedents": [
+      "14",
+      "1"
+    ],
+    "consequents": [
+      "12"
+    ],
+    "support": 0.009900990099009901,
+    "confidence": 0.6666666666666667,
+    "lift": 6.121212121212122
+  },
+  {
+    "antecedents": [
+      "14",
+      "12"
+    ],
+    "consequents": [
+      "1"
+    ],
+    "support": 0.009900990099009901,
+    "confidence": 1.0,
+    "lift": 9.181818181818182
+  },
+  {
+    "antecedents": [
+      "13",
+      "1"
+    ],
+    "consequents": [
+      "7"
+    ],
+    "support": 0.0049504950495049506,
+    "confidence": 0.5,
+    "lift": 2.3488372093023258
+  },
+  {
+    "antecedents": [
+      "7",
+      "1"
+    ],
+    "consequents": [
+      "13"
+    ],
+    "support": 0.0049504950495049506,
+    "confidence": 0.25,
+    "lift": 2.6578947368421053
+  },
+  {
+    "antecedents": [
+      "13",
+      "7"
+    ],
+    "consequents": [
+      "1"
+    ],
+    "support": 0.0049504950495049506,
+    "confidence": 0.33333333333333337,
+    "lift": 3.060606060606061
+  },
+  {
+    "antecedents": [
+      "14",
+      "1"
+    ],
+    "consequents": [
+      "2"
+    ],
+    "support": 0.0049504950495049506,
+    "confidence": 0.33333333333333337,
+    "lift": 2.1720430107526885
+  },
+  {
+    "antecedents": [
+      "1",
+      "2"
+    ],
+    "consequents": [
+      "14"
+    ],
+    "support": 0.0049504950495049506,
+    "confidence": 0.33333333333333337,
+    "lift": 2.927536231884058
+  },
+  {
+    "antecedents": [
+      "14",
+      "2"
+    ],
+    "consequents": [
+      "1"
+    ],
+    "support": 0.0049504950495049506,
+    "confidence": 0.25,
+    "lift": 2.2954545454545454
+  },
+  {
+    "antecedents": [
+      "15",
+      "1"
+    ],
+    "consequents": [
+      "4"
+    ],
+    "support": 0.0049504950495049506,
+    "confidence": 1.0,
+    "lift": 7.481481481481481
+  },
+  {
+    "antecedents": [
+      "4",
+      "1"
+    ],
+    "consequents": [
+      "15"
+    ],
+    "support": 0.0049504950495049506,
+    "confidence": 1.0,
+    "lift": 8.416666666666668
+  },
+  {
+    "antecedents": [
+      "15",
+      "4"
+    ],
+    "consequents": [
+      "1"
+    ],
+    "support": 0.0049504950495049506,
+    "confidence": 0.25,
+    "lift": 2.2954545454545454
+  },
+  {
+    "antecedents": [
+      "1",
+      "2"
+    ],
+    "consequents": [
+      "9"
+    ],
+    "support": 0.0049504950495049506,
+    "confidence": 0.33333333333333337,
+    "lift": 2.58974358974359
+  },
+  {
+    "antecedents": [
+      "1",
+      "9"
+    ],
+    "consequents": [
+      "2"
+    ],
+    "support": 0.0049504950495049506,
+    "confidence": 1.0,
+    "lift": 6.516129032258065
+  },
+  {
+    "antecedents": [
+      "3",
+      "1"
+    ],
+    "consequents": [
+      "6"
+    ],
+    "support": 0.0049504950495049506,
+    "confidence": 0.33333333333333337,
+    "lift": 2.4047619047619047
+  },
+  {
+    "antecedents": [
+      "1",
+      "6"
+    ],
+    "consequents": [
+      "3"
+    ],
+    "support": 0.0049504950495049506,
+    "confidence": 1.0,
+    "lift": 8.08
+  },
+  {
+    "antecedents": [
+      "3",
+      "6"
+    ],
+    "consequents": [
+      "1"
+    ],
+    "support": 0.0049504950495049506,
+    "confidence": 0.5,
+    "lift": 4.590909090909091
+  },
+  {
+    "antecedents": [
+      "3",
+      "1"
+    ],
+    "consequents": [
+      "7"
+    ],
+    "support": 0.0049504950495049506,
+    "confidence": 0.33333333333333337,
+    "lift": 1.5658914728682172
+  },
+  {
+    "antecedents": [
+      "7",
+      "1"
+    ],
+    "consequents": [
+      "3"
+    ],
+    "support": 0.0049504950495049506,
+    "confidence": 0.25,
+    "lift": 2.02
+  },
+  {
+    "antecedents": [
+      "3",
+      "7"
+    ],
+    "consequents": [
+      "1"
+    ],
+    "support": 0.0049504950495049506,
+    "confidence": 0.25,
+    "lift": 2.2954545454545454
+  },
+  {
+    "antecedents": [
+      "10",
+      "11"
+    ],
+    "consequents": [
+      "4"
+    ],
+    "support": 0.0049504950495049506,
+    "confidence": 0.25,
+    "lift": 1.8703703703703702
+  },
+  {
+    "antecedents": [
+      "4",
+      "10"
+    ],
+    "consequents": [
+      "11"
+    ],
+    "support": 0.0049504950495049506,
+    "confidence": 0.5,
+    "lift": 4.391304347826087
+  },
+  {
+    "antecedents": [
+      "4",
+      "11"
+    ],
+    "consequents": [
+      "10"
+    ],
+    "support": 0.0049504950495049506,
+    "confidence": 0.5,
+    "lift": 4.391304347826087
+  },
+  {
+    "antecedents": [
+      "10",
+      "11"
+    ],
+    "consequents": [
+      "5"
+    ],
+    "support": 0.0049504950495049506,
+    "confidence": 0.25,
+    "lift": 1.8703703703703702
+  },
+  {
+    "antecedents": [
+      "5",
+      "10"
+    ],
+    "consequents": [
+      "11"
+    ],
+    "support": 0.0049504950495049506,
+    "confidence": 0.33333333333333337,
+    "lift": 2.927536231884058
+  },
+  {
+    "antecedents": [
+      "5",
+      "11"
+    ],
+    "consequents": [
+      "10"
+    ],
+    "support": 0.0049504950495049506,
+    "confidence": 0.5,
+    "lift": 4.391304347826087
+  },
+  {
+    "antecedents": [
+      "10",
+      "12"
+    ],
+    "consequents": [
+      "9"
+    ],
+    "support": 0.0049504950495049506,
+    "confidence": 0.5,
+    "lift": 3.8846153846153846
+  },
+  {
+    "antecedents": [
+      "10",
+      "9"
+    ],
+    "consequents": [
+      "12"
+    ],
+    "support": 0.0049504950495049506,
+    "confidence": 0.25,
+    "lift": 2.2954545454545454
+  },
+  {
+    "antecedents": [
+      "9",
+      "12"
+    ],
+    "consequents": [
+      "10"
+    ],
+    "support": 0.0049504950495049506,
+    "confidence": 0.5,
+    "lift": 4.391304347826087
+  },
+  {
+    "antecedents": [
+      "13",
+      "10"
+    ],
+    "consequents": [
+      "5"
+    ],
+    "support": 0.0049504950495049506,
+    "confidence": 0.5,
+    "lift": 3.7407407407407405
+  },
+  {
+    "antecedents": [
+      "5",
+      "10"
+    ],
+    "consequents": [
+      "13"
+    ],
+    "support": 0.0049504950495049506,
+    "confidence": 0.33333333333333337,
+    "lift": 3.5438596491228074
+  },
+  {
+    "antecedents": [
+      "13",
+      "5"
+    ],
+    "consequents": [
+      "10"
+    ],
+    "support": 0.0049504950495049506,
+    "confidence": 0.33333333333333337,
+    "lift": 2.927536231884058
+  },
+  {
+    "antecedents": [
+      "14",
+      "10"
+    ],
+    "consequents": [
+      "8"
+    ],
+    "support": 0.0049504950495049506,
+    "confidence": 1.0,
+    "lift": 10.1
+  },
+  {
+    "antecedents": [
+      "8",
+      "10"
+    ],
+    "consequents": [
+      "14"
+    ],
+    "support": 0.0049504950495049506,
+    "confidence": 0.33333333333333337,
+    "lift": 2.927536231884058
+  },
+  {
+    "antecedents": [
+      "8",
+      "14"
+    ],
+    "consequents": [
+      "10"
+    ],
+    "support": 0.0049504950495049506,
+    "confidence": 0.5,
+    "lift": 4.391304347826087
+  },
+  {
+    "antecedents": [
+      "15",
+      "10"
+    ],
+    "consequents": [
+      "8"
+    ],
+    "support": 0.0049504950495049506,
+    "confidence": 1.0,
+    "lift": 10.1
+  },
+  {
+    "antecedents": [
+      "8",
+      "10"
+    ],
+    "consequents": [
+      "15"
+    ],
+    "support": 0.0049504950495049506,
+    "confidence": 0.33333333333333337,
+    "lift": 2.805555555555556
+  },
+  {
+    "antecedents": [
+      "15",
+      "8"
+    ],
+    "consequents": [
+      "10"
+    ],
+    "support": 0.0049504950495049506,
+    "confidence": 0.33333333333333337,
+    "lift": 2.927536231884058
+  },
+  {
+    "antecedents": [
+      "10",
+      "2"
+    ],
+    "consequents": [
+      "8"
+    ],
+    "support": 0.0049504950495049506,
+    "confidence": 0.33333333333333337,
+    "lift": 3.3666666666666667
+  },
+  {
+    "antecedents": [
+      "8",
+      "10"
+    ],
+    "consequents": [
+      "2"
+    ],
+    "support": 0.0049504950495049506,
+    "confidence": 0.33333333333333337,
+    "lift": 2.1720430107526885
+  },
+  {
+    "antecedents": [
+      "8",
+      "2"
+    ],
+    "consequents": [
+      "10"
+    ],
+    "support": 0.0049504950495049506,
+    "confidence": 0.5,
+    "lift": 4.391304347826087
+  },
+  {
+    "antecedents": [
+      "10",
+      "2"
+    ],
+    "consequents": [
+      "9"
+    ],
+    "support": 0.0049504950495049506,
+    "confidence": 0.33333333333333337,
+    "lift": 2.58974358974359
+  },
+  {
+    "antecedents": [
+      "10",
+      "9"
+    ],
+    "consequents": [
+      "2"
+    ],
+    "support": 0.0049504950495049506,
+    "confidence": 0.25,
+    "lift": 1.6290322580645162
+  },
+  {
+    "antecedents": [
+      "3",
+      "10"
+    ],
+    "consequents": [
+      "9"
+    ],
+    "support": 0.0049504950495049506,
+    "confidence": 1.0,
+    "lift": 7.769230769230769
+  },
+  {
+    "antecedents": [
+      "10",
+      "9"
+    ],
+    "consequents": [
+      "3"
+    ],
+    "support": 0.0049504950495049506,
+    "confidence": 0.25,
+    "lift": 2.02
+  },
+  {
+    "antecedents": [
+      "3",
+      "9"
+    ],
+    "consequents": [
+      "10"
+    ],
+    "support": 0.0049504950495049506,
+    "confidence": 0.5,
+    "lift": 4.391304347826087
+  },
+  {
+    "antecedents": [
+      "5",
+      "10"
+    ],
+    "consequents": [
+      "9"
+    ],
+    "support": 0.0049504950495049506,
+    "confidence": 0.33333333333333337,
+    "lift": 2.58974358974359
+  },
+  {
+    "antecedents": [
+      "10",
+      "9"
+    ],
+    "consequents": [
+      "5"
+    ],
+    "support": 0.0049504950495049506,
+    "confidence": 0.25,
+    "lift": 1.8703703703703702
+  },
+  {
+    "antecedents": [
+      "5",
+      "9"
+    ],
+    "consequents": [
+      "10"
+    ],
+    "support": 0.0049504950495049506,
+    "confidence": 0.25,
+    "lift": 2.1956521739130435
+  },
+  {
+    "antecedents": [
+      "11",
+      "12"
+    ],
+    "consequents": [
+      "15"
+    ],
+    "support": 0.0049504950495049506,
+    "confidence": 0.5,
+    "lift": 4.208333333333334
+  },
+  {
+    "antecedents": [
+      "15",
+      "11"
+    ],
+    "consequents": [
+      "12"
+    ],
+    "support": 0.0049504950495049506,
+    "confidence": 0.5,
+    "lift": 4.590909090909091
+  },
+  {
+    "antecedents": [
+      "15",
+      "12"
+    ],
+    "consequents": [
+      "11"
+    ],
+    "support": 0.0049504950495049506,
+    "confidence": 1.0,
+    "lift": 8.782608695652174
+  },
+  {
+    "antecedents": [
+      "11",
+      "12"
+    ],
+    "consequents": [
+      "5"
+    ],
+    "support": 0.0049504950495049506,
+    "confidence": 0.5,
+    "lift": 3.7407407407407405
+  },
+  {
+    "antecedents": [
+      "5",
+      "11"
+    ],
+    "consequents": [
+      "12"
+    ],
+    "support": 0.0049504950495049506,
+    "confidence": 0.5,
+    "lift": 4.590909090909091
+  },
+  {
+    "antecedents": [
+      "5",
+      "12"
+    ],
+    "consequents": [
+      "11"
+    ],
+    "support": 0.0049504950495049506,
+    "confidence": 0.5,
+    "lift": 4.391304347826087
+  },
+  {
+    "antecedents": [
+      "14",
+      "11"
+    ],
+    "consequents": [
+      "3"
+    ],
+    "support": 0.0049504950495049506,
+    "confidence": 0.5,
+    "lift": 4.04
+  },
+  {
+    "antecedents": [
+      "3",
+      "14"
+    ],
+    "consequents": [
+      "11"
+    ],
+    "support": 0.0049504950495049506,
+    "confidence": 0.5,
+    "lift": 4.391304347826087
+  },
+  {
+    "antecedents": [
+      "14",
+      "11"
+    ],
+    "consequents": [
+      "6"
+    ],
+    "support": 0.0049504950495049506,
+    "confidence": 0.5,
+    "lift": 3.6071428571428568
+  },
+  {
+    "antecedents": [
+      "11",
+      "6"
+    ],
+    "consequents": [
+      "14"
+    ],
+    "support": 0.0049504950495049506,
+    "confidence": 0.5,
+    "lift": 4.391304347826087
+  },
+  {
+    "antecedents": [
+      "14",
+      "6"
+    ],
+    "consequents": [
+      "11"
+    ],
+    "support": 0.0049504950495049506,
+    "confidence": 0.33333333333333337,
+    "lift": 2.927536231884058
+  },
+  {
+    "antecedents": [
+      "2",
+      "11"
+    ],
+    "consequents": [
+      "6"
+    ],
+    "support": 0.0049504950495049506,
+    "confidence": 1.0,
+    "lift": 7.2142857142857135
+  },
+  {
+    "antecedents": [
+      "11",
+      "6"
+    ],
+    "consequents": [
+      "2"
+    ],
+    "support": 0.0049504950495049506,
+    "confidence": 0.5,
+    "lift": 3.2580645161290325
+  },
+  {
+    "antecedents": [
+      "4",
+      "11"
+    ],
+    "consequents": [
+      "7"
+    ],
+    "support": 0.0049504950495049506,
+    "confidence": 0.5,
+    "lift": 2.3488372093023258
+  },
+  {
+    "antecedents": [
+      "7",
+      "11"
+    ],
+    "consequents": [
+      "4"
+    ],
+    "support": 0.0049504950495049506,
+    "confidence": 0.25,
+    "lift": 1.8703703703703702
+  },
+  {
+    "antecedents": [
+      "4",
+      "7"
+    ],
+    "consequents": [
+      "11"
+    ],
+    "support": 0.0049504950495049506,
+    "confidence": 0.25,
+    "lift": 2.1956521739130435
+  },
+  {
+    "antecedents": [
+      "13",
+      "12"
+    ],
+    "consequents": [
+      "2"
+    ],
+    "support": 0.0049504950495049506,
+    "confidence": 0.33333333333333337,
+    "lift": 2.1720430107526885
+  },
+  {
+    "antecedents": [
+      "2",
+      "12"
+    ],
+    "consequents": [
+      "13"
+    ],
+    "support": 0.0049504950495049506,
+    "confidence": 1.0,
+    "lift": 10.631578947368421
+  },
+  {
+    "antecedents": [
+      "13",
+      "2"
+    ],
+    "consequents": [
+      "12"
+    ],
+    "support": 0.0049504950495049506,
+    "confidence": 0.5,
+    "lift": 4.590909090909091
+  },
+  {
+    "antecedents": [
+      "13",
+      "12"
+    ],
+    "consequents": [
+      "3"
+    ],
+    "support": 0.0049504950495049506,
+    "confidence": 0.33333333333333337,
+    "lift": 2.693333333333334
+  },
+  {
+    "antecedents": [
+      "3",
+      "12"
+    ],
+    "consequents": [
+      "13"
+    ],
+    "support": 0.0049504950495049506,
+    "confidence": 1.0,
+    "lift": 10.631578947368421
+  },
+  {
+    "antecedents": [
+      "13",
+      "3"
+    ],
+    "consequents": [
+      "12"
+    ],
+    "support": 0.0049504950495049506,
+    "confidence": 0.5,
+    "lift": 4.590909090909091
+  },
+  {
+    "antecedents": [
+      "13",
+      "12"
+    ],
+    "consequents": [
+      "8"
+    ],
+    "support": 0.0049504950495049506,
+    "confidence": 0.33333333333333337,
+    "lift": 3.3666666666666667
+  },
+  {
+    "antecedents": [
+      "8",
+      "12"
+    ],
+    "consequents": [
+      "13"
+    ],
+    "support": 0.0049504950495049506,
+    "confidence": 0.5,
+    "lift": 5.315789473684211
+  },
+  {
+    "antecedents": [
+      "8",
+      "13"
+    ],
+    "consequents": [
+      "12"
+    ],
+    "support": 0.0049504950495049506,
+    "confidence": 0.33333333333333337,
+    "lift": 3.060606060606061
+  },
+  {
+    "antecedents": [
+      "4",
+      "12"
+    ],
+    "consequents": [
+      "5"
+    ],
+    "support": 0.0049504950495049506,
+    "confidence": 0.33333333333333337,
+    "lift": 2.493827160493827
+  },
+  {
+    "antecedents": [
+      "5",
+      "12"
+    ],
+    "consequents": [
+      "4"
+    ],
+    "support": 0.0049504950495049506,
+    "confidence": 0.5,
+    "lift": 3.7407407407407405
+  },
+  {
+    "antecedents": [
+      "5",
+      "4"
+    ],
+    "consequents": [
+      "12"
+    ],
+    "support": 0.0049504950495049506,
+    "confidence": 0.33333333333333337,
+    "lift": 3.060606060606061
+  },
+  {
+    "antecedents": [
+      "13",
+      "14"
+    ],
+    "consequents": [
+      "4"
+    ],
+    "support": 0.0049504950495049506,
+    "confidence": 1.0,
+    "lift": 7.481481481481481
+  },
+  {
+    "antecedents": [
+      "13",
+      "4"
+    ],
+    "consequents": [
+      "14"
+    ],
+    "support": 0.0049504950495049506,
+    "confidence": 0.5,
+    "lift": 4.391304347826087
+  },
+  {
+    "antecedents": [
+      "4",
+      "14"
+    ],
+    "consequents": [
+      "13"
+    ],
+    "support": 0.0049504950495049506,
+    "confidence": 0.5,
+    "lift": 5.315789473684211
+  },
+  {
+    "antecedents": [
+      "13",
+      "2"
+    ],
+    "consequents": [
+      "9"
+    ],
+    "support": 0.0049504950495049506,
+    "confidence": 0.5,
+    "lift": 3.8846153846153846
+  },
+  {
+    "antecedents": [
+      "13",
+      "9"
+    ],
+    "consequents": [
+      "2"
+    ],
+    "support": 0.0049504950495049506,
+    "confidence": 1.0,
+    "lift": 6.516129032258065
+  },
+  {
+    "antecedents": [
+      "13",
+      "3"
+    ],
+    "consequents": [
+      "7"
+    ],
+    "support": 0.0049504950495049506,
+    "confidence": 0.5,
+    "lift": 2.3488372093023258
+  },
+  {
+    "antecedents": [
+      "13",
+      "7"
+    ],
+    "consequents": [
+      "3"
+    ],
+    "support": 0.0049504950495049506,
+    "confidence": 0.33333333333333337,
+    "lift": 2.693333333333334
+  },
+  {
+    "antecedents": [
+      "3",
+      "7"
+    ],
+    "consequents": [
+      "13"
+    ],
+    "support": 0.0049504950495049506,
+    "confidence": 0.25,
+    "lift": 2.6578947368421053
+  },
+  {
+    "antecedents": [
+      "13",
+      "4"
+    ],
+    "consequents": [
+      "5"
+    ],
+    "support": 0.0049504950495049506,
+    "confidence": 0.5,
+    "lift": 3.7407407407407405
+  },
+  {
+    "antecedents": [
+      "13",
+      "5"
+    ],
+    "consequents": [
+      "4"
+    ],
+    "support": 0.0049504950495049506,
+    "confidence": 0.33333333333333337,
+    "lift": 2.493827160493827
+  },
+  {
+    "antecedents": [
+      "5",
+      "4"
+    ],
+    "consequents": [
+      "13"
+    ],
+    "support": 0.0049504950495049506,
+    "confidence": 0.33333333333333337,
+    "lift": 3.5438596491228074
+  },
+  {
+    "antecedents": [
+      "15",
+      "14"
+    ],
+    "consequents": [
+      "6"
+    ],
+    "support": 0.0049504950495049506,
+    "confidence": 0.5,
+    "lift": 3.6071428571428568
+  },
+  {
+    "antecedents": [
+      "14",
+      "6"
+    ],
+    "consequents": [
+      "15"
+    ],
+    "support": 0.0049504950495049506,
+    "confidence": 0.33333333333333337,
+    "lift": 2.805555555555556
+  },
+  {
+    "antecedents": [
+      "14",
+      "2"
+    ],
+    "consequents": [
+      "9"
+    ],
+    "support": 0.0049504950495049506,
+    "confidence": 0.25,
+    "lift": 1.9423076923076923
+  },
+  {
+    "antecedents": [
+      "14",
+      "9"
+    ],
+    "consequents": [
+      "2"
+    ],
+    "support": 0.0049504950495049506,
+    "confidence": 1.0,
+    "lift": 6.516129032258065
+  },
+  {
+    "antecedents": [
+      "5",
+      "14"
+    ],
+    "consequents": [
+      "7"
+    ],
+    "support": 0.0049504950495049506,
+    "confidence": 0.5,
+    "lift": 2.3488372093023258
+  },
+  {
+    "antecedents": [
+      "7",
+      "14"
+    ],
+    "consequents": [
+      "5"
+    ],
+    "support": 0.0049504950495049506,
+    "confidence": 0.25,
+    "lift": 1.8703703703703702
+  },
+  {
+    "antecedents": [
+      "5",
+      "7"
+    ],
+    "consequents": [
+      "14"
+    ],
+    "support": 0.0049504950495049506,
+    "confidence": 0.25,
+    "lift": 2.1956521739130435
+  },
+  {
+    "antecedents": [
+      "15",
+      "2"
+    ],
+    "consequents": [
+      "6"
+    ],
+    "support": 0.0049504950495049506,
+    "confidence": 1.0,
+    "lift": 7.2142857142857135
+  },
+  {
+    "antecedents": [
+      "15",
+      "3"
+    ],
+    "consequents": [
+      "4"
+    ],
+    "support": 0.0049504950495049506,
+    "confidence": 0.5,
+    "lift": 3.7407407407407405
+  },
+  {
+    "antecedents": [
+      "15",
+      "4"
+    ],
+    "consequents": [
+      "3"
+    ],
+    "support": 0.0049504950495049506,
+    "confidence": 0.25,
+    "lift": 2.02
+  },
+  {
+    "antecedents": [
+      "3",
+      "4"
+    ],
+    "consequents": [
+      "15"
+    ],
+    "support": 0.0049504950495049506,
+    "confidence": 0.33333333333333337,
+    "lift": 2.805555555555556
+  },
+  {
+    "antecedents": [
+      "15",
+      "6"
+    ],
+    "consequents": [
+      "7"
+    ],
+    "support": 0.009900990099009901,
+    "confidence": 0.39999999999999997,
+    "lift": 1.8790697674418604
+  },
+  {
+    "antecedents": [
+      "15",
+      "7"
+    ],
+    "consequents": [
+      "6"
+    ],
+    "support": 0.009900990099009901,
+    "confidence": 0.2857142857142857,
+    "lift": 2.061224489795918
+  },
+  {
+    "antecedents": [
+      "7",
+      "6"
+    ],
+    "consequents": [
+      "15"
+    ],
+    "support": 0.009900990099009901,
+    "confidence": 0.6666666666666667,
+    "lift": 5.611111111111112
+  },
+  {
+    "antecedents": [
+      "15",
+      "8"
+    ],
+    "consequents": [
+      "6"
+    ],
+    "support": 0.0049504950495049506,
+    "confidence": 0.33333333333333337,
+    "lift": 2.4047619047619047
+  },
+  {
+    "antecedents": [
+      "8",
+      "6"
+    ],
+    "consequents": [
+      "15"
+    ],
+    "support": 0.0049504950495049506,
+    "confidence": 0.25,
+    "lift": 2.104166666666667
+  },
+  {
+    "antecedents": [
+      "15",
+      "7"
+    ],
+    "consequents": [
+      "9"
+    ],
+    "support": 0.009900990099009901,
+    "confidence": 0.2857142857142857,
+    "lift": 2.2197802197802194
+  },
+  {
+    "antecedents": [
+      "15",
+      "9"
+    ],
+    "consequents": [
+      "7"
+    ],
+    "support": 0.009900990099009901,
+    "confidence": 1.0,
+    "lift": 4.6976744186046515
+  },
+  {
+    "antecedents": [
+      "7",
+      "9"
+    ],
+    "consequents": [
+      "15"
+    ],
+    "support": 0.009900990099009901,
+    "confidence": 0.6666666666666667,
+    "lift": 5.611111111111112
+  },
+  {
+    "antecedents": [
+      "3",
+      "2"
+    ],
+    "consequents": [
+      "7"
+    ],
+    "support": 0.0049504950495049506,
+    "confidence": 0.5,
+    "lift": 2.3488372093023258
+  },
+  {
+    "antecedents": [
+      "7",
+      "2"
+    ],
+    "consequents": [
+      "3"
+    ],
+    "support": 0.0049504950495049506,
+    "confidence": 0.25,
+    "lift": 2.02
+  },
+  {
+    "antecedents": [
+      "3",
+      "7"
+    ],
+    "consequents": [
+      "2"
+    ],
+    "support": 0.0049504950495049506,
+    "confidence": 0.25,
+    "lift": 1.6290322580645162
+  },
+  {
+    "antecedents": [
+      "4",
+      "2"
+    ],
+    "consequents": [
+      "6"
+    ],
+    "support": 0.0049504950495049506,
+    "confidence": 0.5,
+    "lift": 3.6071428571428568
+  },
+  {
+    "antecedents": [
+      "5",
+      "2"
+    ],
+    "consequents": [
+      "6"
+    ],
+    "support": 0.0049504950495049506,
+    "confidence": 0.5,
+    "lift": 3.6071428571428568
+  },
+  {
+    "antecedents": [
+      "5",
+      "6"
+    ],
+    "consequents": [
+      "2"
+    ],
+    "support": 0.0049504950495049506,
+    "confidence": 0.33333333333333337,
+    "lift": 2.1720430107526885
+  },
+  {
+    "antecedents": [
+      "7",
+      "2"
+    ],
+    "consequents": [
+      "9"
+    ],
+    "support": 0.0049504950495049506,
+    "confidence": 0.25,
+    "lift": 1.9423076923076923
+  },
+  {
+    "antecedents": [
+      "7",
+      "9"
+    ],
+    "consequents": [
+      "2"
+    ],
+    "support": 0.0049504950495049506,
+    "confidence": 0.33333333333333337,
+    "lift": 2.1720430107526885
+  },
+  {
+    "antecedents": [
+      "8",
+      "2"
+    ],
+    "consequents": [
+      "9"
+    ],
+    "support": 0.0049504950495049506,
+    "confidence": 0.5,
+    "lift": 3.8846153846153846
+  },
+  {
+    "antecedents": [
+      "8",
+      "9"
+    ],
+    "consequents": [
+      "2"
+    ],
+    "support": 0.0049504950495049506,
+    "confidence": 0.5,
+    "lift": 3.2580645161290325
+  },
+  {
+    "antecedents": [
+      "3",
+      "4"
+    ],
+    "consequents": [
+      "5"
+    ],
+    "support": 0.0049504950495049506,
+    "confidence": 0.33333333333333337,
+    "lift": 2.493827160493827
+  },
+  {
+    "antecedents": [
+      "3",
+      "5"
+    ],
+    "consequents": [
+      "4"
+    ],
+    "support": 0.0049504950495049506,
+    "confidence": 0.5,
+    "lift": 3.7407407407407405
+  },
+  {
+    "antecedents": [
+      "5",
+      "4"
+    ],
+    "consequents": [
+      "3"
+    ],
+    "support": 0.0049504950495049506,
+    "confidence": 0.33333333333333337,
+    "lift": 2.693333333333334
+  },
+  {
+    "antecedents": [
+      "3",
+      "4"
+    ],
+    "consequents": [
+      "6"
+    ],
+    "support": 0.0049504950495049506,
+    "confidence": 0.33333333333333337,
+    "lift": 2.4047619047619047
+  },
+  {
+    "antecedents": [
+      "3",
+      "6"
+    ],
+    "consequents": [
+      "4"
+    ],
+    "support": 0.0049504950495049506,
+    "confidence": 0.5,
+    "lift": 3.7407407407407405
+  },
+  {
+    "antecedents": [
+      "4",
+      "6"
+    ],
+    "consequents": [
+      "8"
+    ],
+    "support": 0.009900990099009901,
+    "confidence": 0.39999999999999997,
+    "lift": 4.039999999999999
+  },
+  {
+    "antecedents": [
+      "8",
+      "4"
+    ],
+    "consequents": [
+      "6"
+    ],
+    "support": 0.009900990099009901,
+    "confidence": 1.0,
+    "lift": 7.2142857142857135
+  },
+  {
+    "antecedents": [
+      "8",
+      "6"
+    ],
+    "consequents": [
+      "4"
+    ],
+    "support": 0.009900990099009901,
+    "confidence": 0.5,
+    "lift": 3.7407407407407405
+  }
+]
