@@ -11,7 +11,7 @@ from pymongo.errors import PyMongoError
 app = FastAPI()
 
 # Configuration with environment variables
-MONGODB_URI = os.getenv("MONGODB_URI", "mongodb://localhost:27017")  # Default for local testing
+MONGODB_URI = os.getenv("MONGODB_URI", "mongodb+srv://tijesunimiidowu16:M7UN0QTHvX6P5ktw@cluster0.x5257.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")  # Default for local testing
 OUTPUT_DIR = os.getenv("OUTPUT_DIR", "/app/rules")  # Default for Render
 RULES_FILE_PATH = os.path.join(OUTPUT_DIR, "apriori_rules.json")
 
