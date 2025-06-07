@@ -124,30 +124,19 @@ async def root():
 @app.get("/api/rules")
 async def get_rules():
     try:
-        # --- DEBUGGING LOGS FOR GET_RULES ---
         print(f"GET /api/rules endpoint hit. Checking {RULES_FILE_PATH}", flush=True)
         if not os.path.exists(RULES_FILE_PATH):
             print(f"DEBUG: RULES_FILE_PATH does NOT exist: {RULES_FILE_PATH}", flush=True)
             return {"error": "Rules not yet generated"}, 404
-        
         file_size = os.path.getsize(RULES_FILE_PATH)
         print(f"DEBUG: RULES_FILE_PATH exists with size: {file_size} bytes", flush=True)
-
         with open(RULES_FILE_PATH, 'r') as file:
             rules_content = file.read()
             if not rules_content.strip():
                 print(f"DEBUG: RULES_FILE_PATH is empty or only whitespace.", flush=True)
-                # You might choose to return 404 or an empty array [] here
-                return {"error": "Rules file is empty"}, 404 # Frontend expects an array, so this might still break it
-            
-            # Print a snippet of content if it's large, otherwise full content
-            content_snippet = rules_content[:200] + "..." if len(rules_content) > 200 else rules_content
-            print(f"DEBUG: Attempting to parse JSON from content: {content_snippet}", flush=True)
-            
+                return {"error": "Rules file is empty"}, 404
             rules = json.loads(rules_content)
             print(f"DEBUG: Successfully parsed {len(rules)} rules.", flush=True)
-        # --- END DEBUGGING LOGS ---
-        
         return rules
     except json.JSONDecodeError as e:
         print(f"ERROR: JSON Decode Error reading {RULES_FILE_PATH}: {e}", flush=True)
@@ -155,7 +144,6 @@ async def get_rules():
     except Exception as e:
         print(f"ERROR: Generic error in get_rules: {e}", flush=True)
         return {"error": str(e)}, 500
-
 @app.post("/api/update-rules")
 async def trigger_update():
     print("POST /api/update-rules endpoint hit. Triggering rule update...", flush=True)
