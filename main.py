@@ -28,12 +28,13 @@ app.add_middleware(
 
 # Configuration with environment variables
 MONGODB_URI = os.getenv("MONGODB_URI", "mongodb+srv://tijesunimiidowu16:M7UN0QTHvX6P5ktw@cluster0.x5257.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
-# Use platform-specific default paths
+# Use platform-specific default paths with explicit environment override
 if os.name == "nt":  # Windows
     OUTPUT_DIR = os.getenv("OUTPUT_DIR", "C:/Users/Admin/OneDrive/Desktop/Model/tensorflow/ipynb/challenges/Real_World_projects/emart_apriori_backend/rules")
 else:  # Linux (Render)
-    OUTPUT_DIR = os.getenv("OUTPUT_DIR", "/emart_apriori_backend/rules")  # Adjusted for no app folder
+    OUTPUT_DIR = os.getenv("OUTPUT_DIR", "/emart_apriori_backend/rules")  # Match disk mount
 RULES_FILE_PATH = os.path.join(OUTPUT_DIR, "apriori_rules.json")
+print(f"DEBUG: Running on platform: {os.name}", flush=True)
 print(f"DEBUG: Configured OUTPUT_DIR: {OUTPUT_DIR}", flush=True)
 print(f"DEBUG: Expected RULES_FILE_PATH: {RULES_FILE_PATH}", flush=True)
 
@@ -151,8 +152,9 @@ async def update_rules():
     update_apriori_rules()
     return {"message": "Rules updated successfully"}
 
-# Main function
+# Main function with initial rule generation
 async def main():
+    update_apriori_rules()  # Force initial rule generation on startup
     asyncio.create_task(watch_transactions())
     config = uvicorn.Config(app, host="0.0.0.0", port=8000)
     server = uvicorn.Server(config)
