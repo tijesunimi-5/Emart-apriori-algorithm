@@ -154,7 +154,8 @@ async def update_rules():
 
 # Main function with initial rule generation
 async def main():
-    update_apriori_rules()  # Force initial rule generation on startup
+    print("Forcing initial rule generation on startup...", flush=True)
+    update_apriori_rules()  # Force initial rule generation
     asyncio.create_task(watch_transactions())
     config = uvicorn.Config(app, host="0.0.0.0", port=8000)
     server = uvicorn.Server(config)
