@@ -28,7 +28,7 @@ app.add_middleware(
 
 # Configuration with environment variables
 MONGODB_URI = os.getenv("MONGODB_URI", "mongodb+srv://tijesunimiidowu16:M7UN0QTHvX6P5ktw@cluster0.x5257.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")  # Default for local testing
-OUTPUT_DIR = os.getenv("OUTPUT_DIR", "C:/Users/Admin/OneDrive/Desktop/Model/tensorflow/ipynb/challenges/Real_World_projects/emart_apriori_backend/rules")  # Corrected local default
+OUTPUT_DIR = os.getenv("OUTPUT_DIR", "/app/rules")  # Default to /app/rules for Render
 RULES_FILE_PATH = os.path.join(OUTPUT_DIR, "apriori_rules.json")
 print(f"DEBUG: Configured OUTPUT_DIR: {OUTPUT_DIR}", flush=True)
 print(f"DEBUG: Expected RULES_FILE_PATH: {RULES_FILE_PATH}", flush=True)
