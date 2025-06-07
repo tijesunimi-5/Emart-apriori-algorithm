@@ -11,11 +11,11 @@ from fastapi.middleware.cors import CORSMiddleware
 # Initialize FastAPI app
 app = FastAPI()
 
-# Add CORS middleware for Next.js
+# CORS configuration for Next.js
 origins = [
-    "https://e-mart-rho.vercel.app",  # Your Next.js deployed URL
-    "http://localhost:3000",          # Local Next.js development
-    "*"                               # Allow all for now (remove in production)
+    "https://e-mart-rho.vercel.app",
+    "http://localhost:3000",
+    "*"
 ]
 
 app.add_middleware(
@@ -27,8 +27,12 @@ app.add_middleware(
 )
 
 # Configuration with environment variables
-MONGODB_URI = os.getenv("MONGODB_URI", "mongodb+srv://tijesunimiidowu16:M7UN0QTHvX6P5ktw@cluster0.x5257.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")  # Default for local testing
-OUTPUT_DIR = os.getenv("OUTPUT_DIR", "/app/rules")  # Default to /app/rules for Render
+MONGODB_URI = os.getenv("MONGODB_URI", "mongodb+srv://tijesunimiidowu16:M7UN0QTHvX6P5ktw@cluster0.x5257.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
+# Use platform-specific default paths
+if os.name == "nt":  # Windows
+    OUTPUT_DIR = os.getenv("OUTPUT_DIR", "C:/Users/Admin/OneDrive/Desktop/Model/tensorflow/ipynb/challenges/Real_World_projects/emart_apriori_backend/rules")
+else:  # Linux (Render)
+    OUTPUT_DIR = os.getenv("OUTPUT_DIR", "/emart_apriori_backend/rules")  # Adjusted for no app folder
 RULES_FILE_PATH = os.path.join(OUTPUT_DIR, "apriori_rules.json")
 print(f"DEBUG: Configured OUTPUT_DIR: {OUTPUT_DIR}", flush=True)
 print(f"DEBUG: Expected RULES_FILE_PATH: {RULES_FILE_PATH}", flush=True)
@@ -46,7 +50,7 @@ db = client["ecommerce"]
 transactions_collection = db["transactions"]
 print(f"DEBUG: Using MONGODB_URI: {MONGODB_URI}", flush=True)
 
-# Fetch transaction data
+# Fetch transactions
 def fetch_transactions():
     try:
         transactions_data = transactions_collection.find({}, {"items": 1, "_id": 0})
@@ -87,7 +91,7 @@ def update_apriori_rules():
         json.dump(rules_list, file, indent=2)
     print(f"Updated {RULES_FILE_PATH} with {len(rules_list)} rules", flush=True)
 
-# Watch for changes in transactions
+# Watch transactions
 async def watch_transactions():
     print("Starting MongoDB Change Stream to watch for new transactions...", flush=True)
     rules_generated = False
@@ -147,11 +151,9 @@ async def update_rules():
     update_apriori_rules()
     return {"message": "Rules updated successfully"}
 
-# Main function to run the app
+# Main function
 async def main():
-    # Start the change stream in the background
     asyncio.create_task(watch_transactions())
-    # Run the FastAPI app with uvicorn (handled by Render)
     config = uvicorn.Config(app, host="0.0.0.0", port=8000)
     server = uvicorn.Server(config)
     await server.serve()
