@@ -7,7 +7,7 @@ from pymongo import MongoClient
 from apyori import apriori
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from pymongo.errors import PyMongoError, ConnectionFailure
+from pymongo.errors import PyMongoError, ConnectionFailure, ServerSelectionTimeoutError
 import uvicorn
 
 # --- Logging Configuration ---
@@ -53,25 +53,30 @@ class MongoDBConnection:
     def __init__(self, uri):
         self.uri = uri
         self.client = None
-        self.transactions_collection = None
+        self._lock = asyncio.Lock()  # Prevent concurrent connection issues
 
-    def connect(self):
-        if not self.client or not self.client.is_connected:
-            try:
-                self.client = MongoClient(self.uri, serverSelectionTimeoutMS=5000, maxPoolSize=50)
-                self.client.admin.command('ping')
-                db = self.client["ecommerce"]
-                self.transactions_collection = db["transactions"]
-                logger.info("Successfully connected to MongoDB.")
-            except (PyMongoError, ConnectionFailure) as e:
-                logger.error(f"Failed to connect to MongoDB: {e}", exc_info=True)
-                raise
-        return self
+    async def connect(self):
+        async with self._lock:
+            if not self.client or not self.client.is_connected:
+                try:
+                    self.client = MongoClient(
+                        self.uri,
+                        serverSelectionTimeoutMS=5000,
+                        maxPoolSize=50,
+                        connectTimeoutMS=5000,
+                        socketTimeoutMS=5000
+                    )
+                    await asyncio.to_thread(self.client.admin.command, 'ping')
+                    logger.info("Successfully connected to MongoDB.")
+                except (PyMongoError, ConnectionFailure, ServerSelectionTimeoutError) as e:
+                    logger.error(f"Failed to connect to MongoDB: {e}", exc_info=True)
+                    raise
+            return self
 
     def get_collection(self):
-        if not self.transactions_collection:
-            self.connect()
-        return self.transactions_collection
+        if not self.client or not self.client.is_connected:
+            raise ConnectionFailure("MongoDB connection is not available.")
+        return self.client["ecommerce"]["transactions"]
 
     def close(self):
         if self.client:
@@ -85,12 +90,13 @@ db_connection = MongoDBConnection(MONGODB_URI)
 def fetch_transactions_sync():
     """Fetches transactions from MongoDB synchronously for Apriori."""
     try:
-        transactions_collection = db_connection.get_collection()
-        transactions_data = transactions_collection.find({}, {"items": 1, "_id": 0})
-        transactions = [[item.get("productId") for item in tx.get("items", []) if item.get("productId")]
-                       for tx in transactions_data if tx.get("items")]
-        logger.info(f"Fetched {len(transactions)} transactions for Apriori.")
-        return transactions
+        with db_connection.connect() as conn:  # Ensure connection is active
+            transactions_collection = conn.get_collection()
+            transactions_data = transactions_collection.find({}, {"items": 1, "_id": 0})
+            transactions = [[item.get("productId") for item in tx.get("items", []) if item.get("productId")]
+                           for tx in transactions_data if tx.get("items")]
+            logger.info(f"Fetched {len(transactions)} transactions for Apriori.")
+            return transactions
     except PyMongoError as e:
         logger.error(f"Failed to fetch transactions for Apriori: {e}", exc_info=True)
         return []
@@ -209,7 +215,7 @@ async def get_recommendations(userItems: str = None):
 async def start_application():
     """Initializes rule generation and starts the Uvicorn server."""
     logger.info("Starting application...")
-    db_connection.connect()  # Establish MongoDB connection
+    await db_connection.connect()  # Establish MongoDB connection
     await asyncio.to_thread(update_apriori_rules_sync)
     logger.info("Initial rule generation complete (if data available).")
     config = uvicorn.Config(app, host="0.0.0.0", port=int(os.getenv("PORT", 8000)))
