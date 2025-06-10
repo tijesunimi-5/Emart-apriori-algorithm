@@ -2,12 +2,13 @@ import os
 import json
 import asyncio
 import logging
+import random
 from pymongo import MongoClient
-from apyori import apriori # Make sure 'apyori' is in your requirements.txt
+from apyori import apriori  # Make sure 'apyori' is in your requirements.txt
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pymongo.errors import PyMongoError
-import uvicorn # Used for starting the server manually with server.serve()
+import uvicorn  # Used for starting the server manually with server.serve()
 
 # --- Logging Configuration ---
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -20,8 +21,8 @@ app = FastAPI()
 # IMPORTANT: Replace with your actual Vercel frontend URL when deployed.
 # For local development, 'http://localhost:3000' is usually correct.
 origins = [
-    "https://e-mart-rho.vercel.app", # Your deployed Vercel frontend URL
-    "http://localhost:3000",        # Your local frontend URL
+    "https://e-mart-rho.vercel.app",  # Your deployed Vercel frontend URL
+    "http://localhost:3000",          # Your local frontend URL
     # "*" # Avoid using "*" in production for security reasons
 ]
 
@@ -29,7 +30,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
     allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"], # Explicitly allow methods
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],  # Explicitly allow methods
     allow_headers=["*"],
 )
 
@@ -41,7 +42,7 @@ MONGODB_URI = os.getenv("MONGODB_URI", "mongodb+srv://tijesunimiidowu16:M7UN0QTH
 # On Render, /opt/render/project/src/ is the root of your cloned repository.
 # './rules' creates a 'rules' directory inside your project's root.
 # This ensures it's written to a writable location.
-OUTPUT_DIR = os.getenv("OUTPUT_DIR", "./rules") # Relative path within the project
+OUTPUT_DIR = os.getenv("OUTPUT_DIR", "./rules")  # Relative path within the project
 
 RULES_FILE_PATH = os.path.join(OUTPUT_DIR, "apriori_rules.json")
 
@@ -60,7 +61,7 @@ except Exception as e:
     raise RuntimeError(f"Cannot initialize application: Failed to create output directory {OUTPUT_DIR}")
 
 # --- MongoDB Connection ---
-mongo_client = None # Global variable to hold client instance
+mongo_client = None  # Global variable to hold client instance
 transactions_collection = None
 
 @app.on_event("startup")
@@ -100,11 +101,11 @@ def fetch_transactions_sync():
         if transactions_collection is None:
             logger.error("Transactions collection not initialized.")
             return []
-            
+
         transactions_data = transactions_collection.find({}, {"items": 1, "_id": 0})
         # Extract product IDs. Ensure 'productId' is consistently named in your transaction items.
         transactions = [[item.get("productId") for item in tx.get("items", []) if item.get("productId")]
-                        for tx in transactions_data if tx.get("items")]
+                       for tx in transactions_data if tx.get("items")]
         logger.info(f"Fetched {len(transactions)} transactions for Apriori.")
         return transactions
     except PyMongoError as e:
@@ -122,7 +123,7 @@ def update_apriori_rules_sync():
         # Ensure the rules file is empty or updated to reflect no rules
         try:
             with open(RULES_FILE_PATH, "w") as file:
-                json.dump([], file, indent=2) # Write an empty array if no rules
+                json.dump([], file, indent=2)  # Write an empty array if no rules
             logger.info(f"Wrote empty rules to {RULES_FILE_PATH} as no transactions were found.")
         except Exception as e:
             logger.error(f"Failed to write empty rules file: {e}", exc_info=True)
@@ -132,10 +133,10 @@ def update_apriori_rules_sync():
         # apyori expects a generator or iterable of iterables
         rules_generator = apriori(
             transactions,
-            min_support=0.001, # Adjust these parameters based on your data and desired rule count
+            min_support=0.001,  # Adjust these parameters based on your data and desired rule count
             min_confidence=0.2,
             min_lift=1.0,
-            min_length=2 # Minimum number of items in a rule (antecedent + consequent)
+            min_length=2  # Minimum number of items in a rule (antecedent + consequent)
         )
 
         rules_list = []
@@ -191,6 +192,45 @@ async def update_rules_endpoint():
     logger.info("Rule update process initiated (may take a moment to complete).")
     return {"message": "Rules update process initiated. Check logs for status."}
 
+@app.post("/api/recommendationAPI")
+async def get_recommendations(userItems: str = None):
+    """Returns Apriori recommendations based on user items or a random rule if none provided."""
+    logger.info(f"POST /api/recommendationAPI endpoint hit. Checking {RULES_FILE_PATH}")
+    if not os.path.exists(RULES_FILE_PATH):
+        logger.warning(f"RULES_FILE_PATH does NOT exist: {RULES_FILE_PATH}")
+        raise HTTPException(status_code=404, detail="Rules not yet generated or file not found.")
+
+    try:
+        with open(RULES_FILE_PATH, "r") as file:
+            rules_content = file.read()
+            if not rules_content.strip():
+                logger.warning(f"RULES_FILE_PATH is empty or only whitespace.")
+                return {"recommendations": []}
+            rules = json.loads(rules_content)
+            logger.info(f"Successfully parsed {len(rules)} rules for recommendations.")
+    except json.JSONDecodeError as e:
+        logger.error(f"JSON Decode Error reading {RULES_FILE_PATH}: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Failed to parse rules file: Invalid JSON: {e}")
+    except Exception as e:
+        logger.error(f"Generic error in get_recommendations: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"An unexpected error occurred: {str(e)}")
+
+    user_items_list = json.loads(userItems) if userItems else []
+    if not user_items_list:  # Empty cart, return random recommendation
+        if rules:
+            random_rule = random.choice(rules)
+            logger.info(f"Random rule selected for empty cart: {random_rule}")
+            return {"recommendations": [random_rule]}
+        return {"recommendations": []}
+
+    # Filter rules based on user items
+    filtered_rules = [
+        rule for rule in rules
+        if set(user_items_list).issuperset(set(rule["antecedents"]))
+    ]
+    logger.info(f"Filtered {len(filtered_rules)} rules based on user items: {user_items_list}")
+    return {"recommendations": filtered_rules[:5]}  # Return top 5 recommendations
+
 # --- Application Startup Function ---
 async def start_application():
     """Initializes rule generation and starts the Uvicorn server."""
@@ -209,4 +249,3 @@ async def start_application():
 if __name__ == "__main__":
     # Use asyncio.run to start the main async function
     asyncio.run(start_application())
-
