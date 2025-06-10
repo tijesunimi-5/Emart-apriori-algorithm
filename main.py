@@ -4,11 +4,11 @@ import asyncio
 import logging
 import random
 from pymongo import MongoClient
-from apyori import apriori  # Make sure 'apyori' is in your requirements.txt
+from apyori import apriori
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from pymongo.errors import PyMongoError
-import uvicorn  # Used for starting the server manually with server.serve()
+from pymongo.errors import PyMongoError, ConnectionFailure
+import uvicorn
 
 # --- Logging Configuration ---
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -19,8 +19,8 @@ app = FastAPI()
 
 # --- CORS Configuration ---
 origins = [
-    "https://e-mart-rho.vercel.app",  # Your deployed Vercel frontend URL
-    "http://localhost:3000",          # Your local frontend URL
+    "https://e-mart-rho.vercel.app",
+    "http://localhost:3000",
 ]
 
 app.add_middleware(
@@ -48,43 +48,44 @@ except Exception as e:
     logger.error(f"Failed to create OUTPUT_DIR {OUTPUT_DIR}: {e}", exc_info=True)
     raise RuntimeError(f"Cannot initialize application: Failed to create output directory {OUTPUT_DIR}")
 
-# --- MongoDB Connection ---
-mongo_client = None
-transactions_collection = None
+# --- MongoDB Connection Management ---
+class MongoDBConnection:
+    def __init__(self, uri):
+        self.uri = uri
+        self.client = None
+        self.transactions_collection = None
 
-@app.on_event("startup")
-async def connect_to_mongodb():
-    """Connects to MongoDB and initializes collections on app startup."""
-    global mongo_client, transactions_collection
-    try:
-        mongo_client = MongoClient(MONGODB_URI, serverSelectionTimeoutMS=5000)
-        db = mongo_client["ecommerce"]
-        transactions_collection = db["transactions"]
-        mongo_client.admin.command('ping')
-        logger.info(f"Successfully connected to MongoDB. Using DB: {db.name}")
-    except PyMongoError as e:
-        logger.error(f"Failed to connect to MongoDB: {e}", exc_info=True)
-        raise
-    except Exception as e:
-        logger.error(f"An unexpected error occurred during MongoDB connection: {e}", exc_info=True)
-        raise
+    def connect(self):
+        if not self.client or not self.client.is_connected:
+            try:
+                self.client = MongoClient(self.uri, serverSelectionTimeoutMS=5000, maxPoolSize=50)
+                self.client.admin.command('ping')
+                db = self.client["ecommerce"]
+                self.transactions_collection = db["transactions"]
+                logger.info("Successfully connected to MongoDB.")
+            except (PyMongoError, ConnectionFailure) as e:
+                logger.error(f"Failed to connect to MongoDB: {e}", exc_info=True)
+                raise
+        return self
 
-@app.on_event("shutdown")
-async def close_mongodb_connection():
-    """Closes the MongoDB connection on app shutdown."""
-    global mongo_client
-    if mongo_client:
-        mongo_client.close()
-        logger.info("MongoDB connection closed.")
+    def get_collection(self):
+        if not self.transactions_collection:
+            self.connect()
+        return self.transactions_collection
+
+    def close(self):
+        if self.client:
+            self.client.close()
+            logger.info("MongoDB connection closed.")
+
+# Initialize MongoDB connection
+db_connection = MongoDBConnection(MONGODB_URI)
 
 # --- Apriori Rule Generation ---
 def fetch_transactions_sync():
     """Fetches transactions from MongoDB synchronously for Apriori."""
-    global transactions_collection
-    if transactions_collection is None:
-        logger.error("Transactions collection not initialized.")
-        return []
     try:
+        transactions_collection = db_connection.get_collection()
         transactions_data = transactions_collection.find({}, {"items": 1, "_id": 0})
         transactions = [[item.get("productId") for item in tx.get("items", []) if item.get("productId")]
                        for tx in transactions_data if tx.get("items")]
@@ -208,7 +209,7 @@ async def get_recommendations(userItems: str = None):
 async def start_application():
     """Initializes rule generation and starts the Uvicorn server."""
     logger.info("Starting application...")
-    await connect_to_mongodb()  # Ensure connection is established
+    db_connection.connect()  # Establish MongoDB connection
     await asyncio.to_thread(update_apriori_rules_sync)
     logger.info("Initial rule generation complete (if data available).")
     config = uvicorn.Config(app, host="0.0.0.0", port=int(os.getenv("PORT", 8000)))
