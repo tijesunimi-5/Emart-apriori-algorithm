@@ -61,10 +61,10 @@ class MongoDBConnection:
                 try:
                     self.client = MongoClient(
                         self.uri,
-                        serverSelectionTimeoutMS=5000,
+                        serverSelectionTimeoutMS=30000,  # Increased to 30 seconds
                         maxPoolSize=50,
-                        connectTimeoutMS=5000,
-                        socketTimeoutMS=5000
+                        connectTimeoutMS=20000,         # Increased to 20 seconds
+                        socketTimeoutMS=20000           # Increased to 20 seconds
                     )
                     await asyncio.to_thread(self.client.admin.command, 'ping')
                     logger.info("Successfully connected to MongoDB.")
