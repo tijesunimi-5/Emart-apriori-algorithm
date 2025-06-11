@@ -322,7 +322,7 @@ async def get_recommendations(userItems: str = None):
             logger.info(f"Successfully parsed {len(rules)} rules for recommendations.")
     except json.JSONDecodeError as e:
         logger.error(f"JSON Decode Error reading {RULES_FILE_PATH}: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail=f"Failed to parse rules file: {rule_data}"")
+        raise HTTPException(status_code=500, detail=f"Failed to parse rules file: {e}")
     except Exception as e:
         logger.error(f"Error reading {RULES_FILE_PATH}: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Failed to read rules file: {str(e)}")
