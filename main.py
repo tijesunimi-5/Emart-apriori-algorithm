@@ -6,8 +6,7 @@ import random
 import numpy as np
 from pymongo import MongoClient
 from apyori import apriori
-from fastapi import FastAPI, HTTPException
-from fastapi.middleware.cors import CORSMiddleware
+from fastapi import FastAPI, HTTPException, CORSMiddleware  # Updated import
 from pymongo.errors import PyMongoError, ConnectionFailure, ServerSelectionTimeoutError
 from pydantic import BaseModel
 import uvicorn
@@ -35,7 +34,7 @@ app.add_middleware(
 )
 
 # --- Configuration with Environment Variables ---
-MONGODB_URI = os.getenv("MONGODB_URI", "mongodb+srv://tijesunimiidowu16:M7UN0QTHvX6P5ktw@cluster0.x5257.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
+MONGODB_URI = os.getenv("MONGODB_URI")  # Remove hardcoded URI for security
 OUTPUT_DIR = os.getenv("OUTPUT_DIR", "./rules")
 RULES_FILE_PATH = os.path.join(OUTPUT_DIR, "apriori_rules.json")
 
@@ -50,6 +49,10 @@ try:
 except Exception as e:
     logger.error(f"Failed to create OUTPUT_DIR {OUTPUT_DIR}: {e}", exc_info=True)
     raise RuntimeError(f"Cannot initialize application: Failed to create output directory {OUTPUT_DIR}")
+
+if not MONGODB_URI:
+    logger.error("MONGODB_URI environment variable not set")
+    raise RuntimeError("MONGODB_URI environment variable is required")
 
 # --- MongoDB Connection Management ---
 class MongoDBConnection:
@@ -143,7 +146,7 @@ class ThompsonSampling:
                 await asyncio.to_thread(collection.insert_one, {
                     "recommendation_id": recommendation_id,
                     "antecedents": rule["antecedents"],
-                    "consequents": rule["consequents"],
+                    "consequents": [],
                     "successes": 0,
                     "failures": 0
                 })
@@ -192,14 +195,14 @@ class ThompsonSampling:
                     {"recommendation_id": recommendation_id},
                     {"$inc": {"successes": 1}}
                 )
-                logger.info(f"Incremented successes for {recommendation_id}")
+                logger.info(f"Successfully incremented successes for {recommendation_id}")
             else:
                 await asyncio.to_thread(
                     collection.update_one,
                     {"recommendation_id": recommendation_id},
                     {"$inc": {"failures": 1}}
                 )
-                logger.info(f"Incremented failures for {recommendation_id}")
+                logger.info(f"Successfully incremented failures for {recommendation_id}")
         except PyMongoError as e:
             logger.error(f"Failed to update stats for {recommendation_id}: {e}", exc_info=True)
 
@@ -207,12 +210,11 @@ class ThompsonSampling:
 def fetch_transactions_sync():
     """Fetches transactions from MongoDB synchronously for Apriori."""
     try:
-        from asgiref.sync import async_to_sync
         async_to_sync(db_connection.ensure_connection)()  # Ensure connection is active
         transactions_collection = db_connection.get_collection()["transactions"]
         transactions_data = transactions_collection.find({}, {"items": 1, "_id": 0})
         transactions = [[item.get("productId") for item in tx.get("items", []) if item.get("productId")]
-                        for tx in transactions_data if tx.get("items")]
+                       for tx in transactions_data if tx.get("items")]
         logger.info(f"Fetched {len(transactions)} transactions for Apriori.")
         return transactions
     except PyMongoError as e:
@@ -244,7 +246,7 @@ def update_apriori_rules_sync():
             min_length=2
         )
         rules_list = []
-        ts = ThompsonSampling(db_connection)  # Initialize Thompson Sampling
+        ts = ThompsonSampling(db_connection)
         for rule in rules_generator:
             for ordered_stat in rule.ordered_statistics:
                 rule_data = {
@@ -255,7 +257,11 @@ def update_apriori_rules_sync():
                     "lift": ordered_stat.lift
                 }
                 rules_list.append(rule_data)
-                async_to_sync(ts.initialize_stats)(rule_data)  # Initialize stats for the rule
+                try:
+                    async_to_sync(ts.initialize_stats)(rule_data)
+                except PyMongoError as e:
+                    logger.error(f"Failed to initialize stats for rule {rule_data}: {e}", exc_info=True)
+                    continue
         with open(RULES_FILE_PATH, "w") as file:
             json.dump(rules_list, file, indent=2)
         logger.info(f"Updated {RULES_FILE_PATH} with {len(rules_list)} rules.")
@@ -379,7 +385,9 @@ async def start_application():
     await db_connection.connect()  # Establish MongoDB connection
     # Create index for recommendation_stats collection
     try:
-        db_connection.get_collection()["recommendation_stats"].create_index("recommendation_id")
+        await db_connection.ensure_connection()
+        collection = db_connection.get_collection()["recommendation_stats"]
+        await asyncio.to_thread(collection.create_index, "recommendation_id")
         logger.info("Created index on recommendation_id for recommendation_stats collection")
     except PyMongoError as e:
         logger.error(f"Failed to create index on recommendation_stats: {e}", exc_info=True)
