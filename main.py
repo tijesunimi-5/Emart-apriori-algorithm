@@ -282,7 +282,7 @@ async def get_rules():
         with open(RULES_FILE_PATH, "r") as file:
             rules_content = file.read()
             if not rules_content.strip():
-                logger.warning(f"RULES_FILE_PATH is empty or only whitespace.")
+                logger.warning(f"Rules file is empty or whitespace.")
                 return []
             rules = json.loads(rules_content)
             logger.info(f"Successfully parsed {len(rules)} rules.")
@@ -322,7 +322,7 @@ async def get_recommendations(userItems: str = None):
             logger.info(f"Successfully parsed {len(rules)} rules for recommendations.")
     except json.JSONDecodeError as e:
         logger.error(f"JSON Decode Error reading {RULES_FILE_PATH}: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail=f"Failed to parse rules file: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to parse rules file: Invalid JSON: {e}")
     except Exception as e:
         logger.error(f"Error reading {RULES_FILE_PATH}: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Failed to read rules file: {str(e)}")
@@ -344,18 +344,21 @@ async def get_recommendations(userItems: str = None):
                     # Fetch product details for consequents
                     products_collection = db_connection.get_collection()["products"]
                     product_ids = selected_rule["consequents"]
-                    products = await asyncio.to_thread(
+                    products_cursor = await asyncio.to_thread(
                         products_collection.find,
                         {"productId": {"$in": product_ids}}
                     )
                     product_list = [
                         {
+                            "id": product["productId"],
                             "productId": product["productId"],
                             "title": product.get("title"),
                             "image": product.get("image"),
-                            "price": product.get("price")
+                            "price": product.get("price"),
+                            "description": product.get("description"),
+                            "spec": product.get("spec", [])
                         }
-                        async for product in products
+                        for product in products_cursor
                     ]
                     logger.info(f"Returning product recommendations for empty cart: {product_list}")
                     return {"recommendations": product_list}
@@ -378,18 +381,21 @@ async def get_recommendations(userItems: str = None):
                 # Fetch product details for consequents
                 products_collection = db_connection.get_collection()["products"]
                 product_ids = selected_rule["consequents"]
-                products = await asyncio.to_thread(
+                products_cursor = await asyncio.to_thread(
                     products_collection.find,
                     {"productId": {"$in": product_ids}}
                 )
                 product_list = [
                     {
+                        "id": product["productId"],
                         "productId": product["productId"],
                         "title": product.get("title"),
                         "image": product.get("image"),
-                        "price": product.get("price")
+                        "price": product.get("price"),
+                        "description": product.get("description"),
+                        "spec": product.get("spec", [])
                     }
-                    async for product in products
+                    for product in products_cursor
                 ]
                 logger.info(f"Returning product recommendations: {product_list}")
                 return {"recommendations": product_list}
