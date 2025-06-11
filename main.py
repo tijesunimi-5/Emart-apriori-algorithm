@@ -7,7 +7,7 @@ import numpy as np
 from pymongo import MongoClient
 from apyori import apriori
 from fastapi import FastAPI, HTTPException
-from starlette.middleware.cors import CORSMiddleware  # Correct import for fastapi==0.28.0
+from starlette.middleware.cors import CORSMiddleware
 from pymongo.errors import PyMongoError, ConnectionFailure, ServerSelectionTimeoutError
 from pydantic import BaseModel
 import uvicorn
@@ -35,7 +35,7 @@ app.add_middleware(
 )
 
 # --- Configuration with Environment Variables ---
-MONGODB_URI = os.getenv("MONGODB_URI")  # Remove hardcoded URI for security
+MONGODB_URI = os.getenv("MONGODB_URI")
 OUTPUT_DIR = os.getenv("OUTPUT_DIR", "./rules")
 RULES_FILE_PATH = os.path.join(OUTPUT_DIR, "apriori_rules.json")
 
@@ -64,7 +64,7 @@ class MongoDBConnection:
 
     async def connect(self):
         async with self._lock:
-            if not self.client or not await self._is_connected():
+            if self.client is None or not await self._is_connected():
                 try:
                     logger.debug("Attempting to connect to MongoDB...")
                     self.client = MongoClient(
@@ -86,7 +86,7 @@ class MongoDBConnection:
 
     async def _is_connected(self):
         """Check if the MongoDB client is connected."""
-        if not self.client:
+        if self.client is None:
             return False
         try:
             await asyncio.to_thread(self.client.admin.command, 'ping')
@@ -116,8 +116,9 @@ class MongoDBConnection:
             return self
 
     def get_collection(self):
-        if not self.client or not self.client.is_connected:
-            raise ConnectionFailure("MongoDB connection is not available.")
+        """Get the ecommerce database, ensuring connection is active."""
+        if self.client is None:
+            raise ConnectionFailure("MongoDB client is not initialized.")
         return self.client["ecommerce"]
 
     def close(self):
@@ -211,7 +212,7 @@ class ThompsonSampling:
 def fetch_transactions_sync():
     """Fetches transactions from MongoDB synchronously for Apriori."""
     try:
-        async_to_sync(db_connection.ensure_connection)()  # Ensure connection is active
+        async_to_sync(db_connection.ensure_connection)()
         transactions_collection = db_connection.get_collection()["transactions"]
         transactions_data = transactions_collection.find({}, {"items": 1, "_id": 0})
         transactions = [[item.get("productId") for item in tx.get("items", []) if item.get("productId")]
@@ -335,13 +336,13 @@ async def get_recommendations(userItems: str = None):
 
     ts = ThompsonSampling(db_connection)
     try:
-        await db_connection.ensure_connection()  # Ensure connection before Thompson Sampling
+        await db_connection.ensure_connection()
         if not user_items_list:  # Empty cart, select a recommendation
             if rules:
                 selected_rule = await ts.select_recommendation(rules)
                 logger.info(f"Selected rule for empty cart: {selected_rule}")
                 return {"recommendations": [selected_rule] if selected_rule else []}
-            logger.warning(f"No rules available for empty cart recommendation")
+            logger.warning("No rules available for empty cart recommendation")
             return {"recommendations": []}
 
         # Filter rules based on user items
@@ -359,7 +360,7 @@ async def get_recommendations(userItems: str = None):
         logger.warning(f"No matching rules found for user items: {user_items_list}")
         return {"recommendations": []}
     except Exception as e:
-        logger.error(f"Error in Thompson Sampling or rule selection: {e}", exc_info=True)
+        logger.error(f"Error in Thompson or rule generation: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Failed to generate recommendations: {str(e)}")
 
 class FeedbackRequest(BaseModel):
@@ -383,8 +384,7 @@ async def submit_feedback(feedback: FeedbackRequest):
 async def start_application():
     """Initializes rule generation and starts the Uvicorn server."""
     logger.info("Starting application...")
-    await db_connection.connect()  # Establish MongoDB connection
-    # Create index for recommendation_stats collection
+    await db_connection.connect()
     try:
         await db_connection.ensure_connection()
         collection = db_connection.get_collection()["recommendation_stats"]
