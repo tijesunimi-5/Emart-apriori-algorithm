@@ -6,7 +6,8 @@ import random
 import numpy as np
 from pymongo import MongoClient
 from apyori import apriori
-from fastapi import FastAPI, HTTPException, CORSMiddleware  # Updated import
+from fastapi import FastAPI, HTTPException
+from starlette.middleware.cors import CORSMiddleware  # Correct import for fastapi==0.28.0
 from pymongo.errors import PyMongoError, ConnectionFailure, ServerSelectionTimeoutError
 from pydantic import BaseModel
 import uvicorn
@@ -146,7 +147,7 @@ class ThompsonSampling:
                 await asyncio.to_thread(collection.insert_one, {
                     "recommendation_id": recommendation_id,
                     "antecedents": rule["antecedents"],
-                    "consequents": [],
+                    "consequents": rule["consequents"],
                     "successes": 0,
                     "failures": 0
                 })
@@ -195,14 +196,14 @@ class ThompsonSampling:
                     {"recommendation_id": recommendation_id},
                     {"$inc": {"successes": 1}}
                 )
-                logger.info(f"Successfully incremented successes for {recommendation_id}")
+                logger.info(f"Incremented successes for {recommendation_id}")
             else:
                 await asyncio.to_thread(
                     collection.update_one,
                     {"recommendation_id": recommendation_id},
                     {"$inc": {"failures": 1}}
                 )
-                logger.info(f"Successfully incremented failures for {recommendation_id}")
+                logger.info(f"Incremented failures for {recommendation_id}")
         except PyMongoError as e:
             logger.error(f"Failed to update stats for {recommendation_id}: {e}", exc_info=True)
 
@@ -289,7 +290,7 @@ async def get_rules():
         logger.error(f"JSON Decode Error reading {RULES_FILE_PATH}: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Failed to parse rules file: Invalid JSON: {e}")
     except Exception as e:
-        logger.error(f"Generic error in get_rules: {e}", exc_info=True)
+        logger.error(f"Error in get_rules: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"An unexpected error occurred: {str(e)}")
 
 @app.post("/api/update-rules")
@@ -305,11 +306,11 @@ async def get_recommendations(userItems: str = None):
     """Returns recommendations using Thompson Sampling based on user items."""
     logger.info(f"POST /api/recommendationAPI endpoint hit. Checking {RULES_FILE_PATH}")
     logger.debug(f"Received userItems: {userItems}")
-    
+
     if not os.path.exists(RULES_FILE_PATH):
         logger.error(f"RULES_FILE_PATH does NOT exist: {RULES_FILE_PATH}")
         raise HTTPException(status_code=404, detail="Rules not yet generated or file not found.")
-    
+
     try:
         with open(RULES_FILE_PATH, "r") as file:
             rules_content = file.read()
@@ -340,7 +341,7 @@ async def get_recommendations(userItems: str = None):
                 selected_rule = await ts.select_recommendation(rules)
                 logger.info(f"Selected rule for empty cart: {selected_rule}")
                 return {"recommendations": [selected_rule] if selected_rule else []}
-            logger.warning("No rules available for empty cart recommendation")
+            logger.warning(f"No rules available for empty cart recommendation")
             return {"recommendations": []}
 
         # Filter rules based on user items
