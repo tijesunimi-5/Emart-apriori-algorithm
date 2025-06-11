@@ -344,6 +344,7 @@ async def get_recommendations(userItems: str = None):
                     # Fetch product details for consequents
                     products_collection = db_connection.get_collection()["products"]
                     product_ids = selected_rule["consequents"]
+                    logger.debug(f"Fetching products for consequents: {product_ids}")
                     products_cursor = await asyncio.to_thread(
                         products_collection.find,
                         {"productId": {"$in": product_ids}}
@@ -373,14 +374,17 @@ async def get_recommendations(userItems: str = None):
             if set(user_items_list).issuperset(set(rule["antecedents"]))
         ]
         logger.info(f"Filtered {len(filtered_rules)} rules based on user items: {user_items_list}")
+        logger.debug(f"Filtered rules: {[rule['antecedents'] for rule in filtered_rules]}")
 
         # Select a recommendation using Thompson Sampling
         if filtered_rules:
             selected_rule = await ts.select_recommendation(filtered_rules)
             if selected_rule:
+                logger.debug(f"Selected rule: {selected_rule}")
                 # Fetch product details for consequents
                 products_collection = db_connection.get_collection()["products"]
                 product_ids = selected_rule["consequents"]
+                logger.debug(f"Fetching products for consequents: {product_ids}")
                 products_cursor = await asyncio.to_thread(
                     products_collection.find,
                     {"productId": {"$in": product_ids}}
@@ -434,8 +438,12 @@ async def start_application():
         collection = db_connection.get_collection()["recommendation_stats"]
         await asyncio.to_thread(collection.create_index, "recommendation_id")
         logger.info("Created index on recommendation_id for recommendation_stats collection")
+        # Add index on products.productId
+        products_collection = db_connection.get_collection()["products"]
+        await asyncio.to_thread(products_collection.create_index, "productId")
+        logger.info("Created index on productId for products collection")
     except PyMongoError as e:
-        logger.error(f"Failed to create index on recommendation_stats: {e}", exc_info=True)
+        logger.error(f"Failed to create indexes: {e}", exc_info=True)
     await asyncio.to_thread(update_apriori_rules_sync)
     logger.info("Initial rule generation complete (if data available).")
     config = uvicorn.Config(app, host="0.0.0.0", port=int(os.getenv("PORT", 8000)))
