@@ -304,7 +304,7 @@ async def update_rules_endpoint():
 
 @app.post("/api/recommendationAPI")
 async def get_recommendations(userItems: str = None):
-    """Returns recommendations using Thompson Sampling based on user items."""
+    """Returns product recommendations using Thompson Sampling based on user items."""
     logger.info(f"POST /api/recommendationAPI endpoint hit. Checking {RULES_FILE_PATH}")
     logger.debug(f"Received userItems: {userItems}")
 
@@ -322,7 +322,7 @@ async def get_recommendations(userItems: str = None):
             logger.info(f"Successfully parsed {len(rules)} rules for recommendations.")
     except json.JSONDecodeError as e:
         logger.error(f"JSON Decode Error reading {RULES_FILE_PATH}: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail=f"Failed to parse rules file: Invalid JSON: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to parse rules file: {rule_data}"")
     except Exception as e:
         logger.error(f"Error reading {RULES_FILE_PATH}: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Failed to read rules file: {str(e)}")
@@ -340,8 +340,27 @@ async def get_recommendations(userItems: str = None):
         if not user_items_list:  # Empty cart, select a recommendation
             if rules:
                 selected_rule = await ts.select_recommendation(rules)
-                logger.info(f"Selected rule for empty cart: {selected_rule}")
-                return {"recommendations": [selected_rule] if selected_rule else []}
+                if selected_rule:
+                    # Fetch product details for consequents
+                    products_collection = db_connection.get_collection()["products"]
+                    product_ids = selected_rule["consequents"]
+                    products = await asyncio.to_thread(
+                        products_collection.find,
+                        {"productId": {"$in": product_ids}}
+                    )
+                    product_list = [
+                        {
+                            "productId": product["productId"],
+                            "title": product.get("title"),
+                            "image": product.get("image"),
+                            "price": product.get("price")
+                        }
+                        async for product in products
+                    ]
+                    logger.info(f"Returning product recommendations for empty cart: {product_list}")
+                    return {"recommendations": product_list}
+                logger.warning("No rule selected for empty cart")
+                return {"recommendations": []}
             logger.warning("No rules available for empty cart recommendation")
             return {"recommendations": []}
 
@@ -355,12 +374,31 @@ async def get_recommendations(userItems: str = None):
         # Select a recommendation using Thompson Sampling
         if filtered_rules:
             selected_rule = await ts.select_recommendation(filtered_rules)
-            logger.info(f"Selected rule for user items: {selected_rule}")
-            return {"recommendations": [selected_rule] if selected_rule else []}
+            if selected_rule:
+                # Fetch product details for consequents
+                products_collection = db_connection.get_collection()["products"]
+                product_ids = selected_rule["consequents"]
+                products = await asyncio.to_thread(
+                    products_collection.find,
+                    {"productId": {"$in": product_ids}}
+                )
+                product_list = [
+                    {
+                        "productId": product["productId"],
+                        "title": product.get("title"),
+                        "image": product.get("image"),
+                        "price": product.get("price")
+                    }
+                    async for product in products
+                ]
+                logger.info(f"Returning product recommendations: {product_list}")
+                return {"recommendations": product_list}
+            logger.warning(f"No rule selected for user items: {user_items_list}")
+            return {"recommendations": []}
         logger.warning(f"No matching rules found for user items: {user_items_list}")
         return {"recommendations": []}
     except Exception as e:
-        logger.error(f"Error in Thompson or rule generation: {e}", exc_info=True)
+        logger.error(f"Error in Thompson Sampling or product retrieval: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Failed to generate recommendations: {str(e)}")
 
 class FeedbackRequest(BaseModel):
