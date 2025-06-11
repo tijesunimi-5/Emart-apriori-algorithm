@@ -11,6 +11,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pymongo.errors import PyMongoError, ConnectionFailure, ServerSelectionTimeoutError
 from pydantic import BaseModel
 import uvicorn
+from asgiref.sync import async_to_sync
 
 # --- Logging Configuration ---
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -59,8 +60,9 @@ class MongoDBConnection:
 
     async def connect(self):
         async with self._lock:
-            if not self.client or not self.client.is_connected:
+            if not self.client or not await self._is_connected():
                 try:
+                    logger.debug("Attempting to connect to MongoDB...")
                     self.client = MongoClient(
                         self.uri,
                         serverSelectionTimeoutMS=30000,
@@ -72,7 +74,41 @@ class MongoDBConnection:
                     logger.info("Successfully connected to MongoDB.")
                 except (PyMongoError, ConnectionFailure, ServerSelectionTimeoutError) as e:
                     logger.error(f"Failed to connect to MongoDB: {e}", exc_info=True)
+                    self.client = None
                     raise
+            else:
+                logger.debug("MongoDB connection already active.")
+            return self
+
+    async def _is_connected(self):
+        """Check if the MongoDB client is connected."""
+        if not self.client:
+            return False
+        try:
+            await asyncio.to_thread(self.client.admin.command, 'ping')
+            return True
+        except (PyMongoError, ConnectionFailure):
+            return False
+
+    async def ensure_connection(self):
+        """Ensure the MongoDB connection is active, reconnecting if necessary."""
+        async with self._lock:
+            if not await self._is_connected():
+                logger.warning("MongoDB connection not available. Attempting to reconnect...")
+                try:
+                    self.client = MongoClient(
+                        self.uri,
+                        serverSelectionTimeoutMS=30000,
+                        maxPoolSize=50,
+                        connectTimeoutMS=20000,
+                        socketTimeoutMS=20000
+                    )
+                    await asyncio.to_thread(self.client.admin.command, 'ping')
+                    logger.info("Successfully reconnected to MongoDB.")
+                except (PyMongoError, ConnectionFailure, ServerSelectionTimeoutError) as e:
+                    logger.error(f"Failed to reconnect to MongoDB: {e}", exc_info=True)
+                    self.client = None
+                    raise ConnectionFailure(f"MongoDB reconnection failed: {str(e)}")
             return self
 
     def get_collection(self):
@@ -93,59 +129,73 @@ class ThompsonSampling:
     def __init__(self, db_connection):
         self.db_connection = db_connection
 
-    def get_collection(self):
-        """Get the Thompson Sampling statistics collection."""
+    async def get_collection(self):
+        """Get the Thompson Sampling statistics collection, ensuring connection."""
+        await self.db_connection.ensure_connection()
         return self.db_connection.get_collection()["recommendation_stats"]
 
-    def initialize_stats(self, rule):
+    async def initialize_stats(self, rule):
         """Initialize stats for a new recommendation rule if not already present."""
         recommendation_id = f"{','.join(rule['antecedents'])}->{','.join(rule['consequents'])}"
-        collection = self.get_collection()
-        if not collection.find_one({"recommendation_id": recommendation_id}):
-            collection.insert_one({
-                "recommendation_id": recommendation_id,
-                "antecedents": rule["antecedents"],
-                "consequents": rule["consequents"],
-                "successes": 0,
-                "failures": 0
-            })
-            logger.info(f"Initialized Thompson Sampling stats for {recommendation_id}")
+        collection = await self.get_collection()
+        try:
+            if not await asyncio.to_thread(collection.find_one, {"recommendation_id": recommendation_id}):
+                await asyncio.to_thread(collection.insert_one, {
+                    "recommendation_id": recommendation_id,
+                    "antecedents": rule["antecedents"],
+                    "consequents": rule["consequents"],
+                    "successes": 0,
+                    "failures": 0
+                })
+                logger.info(f"Initialized Thompson Sampling stats for {recommendation_id}")
+        except PyMongoError as e:
+            logger.error(f"Failed to initialize stats for {recommendation_id}: {e}", exc_info=True)
 
-    def select_recommendation(self, rules):
+    async def select_recommendation(self, rules):
         """Select a recommendation using Thompson Sampling."""
         if not rules:
+            logger.warning("No rules provided for recommendation selection.")
             return None
 
-        collection = self.get_collection()
+        collection = await self.get_collection()
         sampled_values = []
         for rule in rules:
             recommendation_id = f"{','.join(rule['antecedents'])}->{','.join(rule['consequents'])}"
-            stats = collection.find_one({"recommendation_id": recommendation_id})
-            if not stats:
-                self.initialize_stats(rule)
-                stats = {"successes": 0, "failures": 0}
+            try:
+                stats = await asyncio.to_thread(collection.find_one, {"recommendation_id": recommendation_id})
+                if not stats:
+                    await self.initialize_stats(rule)
+                    stats = {"successes": 0, "failures": 0}
 
-            # Sample from Beta distribution
-            sampled_value = np.random.beta(stats["successes"] + 1, stats["failures"] + 1)
-            sampled_values.append((sampled_value, rule))
+                # Sample from Beta distribution
+                sampled_value = np.random.beta(stats["successes"] + 1, stats["failures"] + 1)
+                sampled_values.append((sampled_value, rule))
+            except PyMongoError as e:
+                logger.error(f"Failed to process rule {recommendation_id}: {e}", exc_info=True)
+                continue
 
         # Select the rule with the highest sampled value
         if sampled_values:
-            return max(sampled_values, key=lambda x: x[0])[1]
-        return random.choice(rules)  # Fallback to random if no samples
+            selected = max(sampled_values, key=lambda x: x[0])[1]
+            logger.info(f"Selected recommendation: {selected}")
+            return selected
+        logger.warning("No valid sampled values; falling back to random choice.")
+        return random.choice(rules) if rules else None
 
-    def update_stats(self, recommendation_id, success):
+    async def update_stats(self, recommendation_id, success):
         """Update successes or failures for a recommendation."""
-        collection = self.get_collection()
+        collection = await self.get_collection()
         try:
             if success:
-                collection.update_one(
+                await asyncio.to_thread(
+                    collection.update_one,
                     {"recommendation_id": recommendation_id},
                     {"$inc": {"successes": 1}}
                 )
                 logger.info(f"Incremented successes for {recommendation_id}")
             else:
-                collection.update_one(
+                await asyncio.to_thread(
+                    collection.update_one,
                     {"recommendation_id": recommendation_id},
                     {"$inc": {"failures": 1}}
                 )
@@ -157,13 +207,14 @@ class ThompsonSampling:
 def fetch_transactions_sync():
     """Fetches transactions from MongoDB synchronously for Apriori."""
     try:
-        with db_connection.connect() as conn:  # Ensure connection is active
-            transactions_collection = conn.get_collection()["transactions"]
-            transactions_data = transactions_collection.find({}, {"items": 1, "_id": 0})
-            transactions = [[item.get("productId") for item in tx.get("items", []) if item.get("productId")]
-                           for tx in transactions_data if tx.get("items")]
-            logger.info(f"Fetched {len(transactions)} transactions for Apriori.")
-            return transactions
+        from asgiref.sync import async_to_sync
+        async_to_sync(db_connection.ensure_connection)()  # Ensure connection is active
+        transactions_collection = db_connection.get_collection()["transactions"]
+        transactions_data = transactions_collection.find({}, {"items": 1, "_id": 0})
+        transactions = [[item.get("productId") for item in tx.get("items", []) if item.get("productId")]
+                        for tx in transactions_data if tx.get("items")]
+        logger.info(f"Fetched {len(transactions)} transactions for Apriori.")
+        return transactions
     except PyMongoError as e:
         logger.error(f"Failed to fetch transactions for Apriori: {e}", exc_info=True)
         return []
@@ -204,7 +255,7 @@ def update_apriori_rules_sync():
                     "lift": ordered_stat.lift
                 }
                 rules_list.append(rule_data)
-                ts.initialize_stats(rule_data)  # Initialize stats for the rule
+                async_to_sync(ts.initialize_stats)(rule_data)  # Initialize stats for the rule
         with open(RULES_FILE_PATH, "w") as file:
             json.dump(rules_list, file, indent=2)
         logger.info(f"Updated {RULES_FILE_PATH} with {len(rules_list)} rules.")
@@ -247,14 +298,17 @@ async def update_rules_endpoint():
 async def get_recommendations(userItems: str = None):
     """Returns recommendations using Thompson Sampling based on user items."""
     logger.info(f"POST /api/recommendationAPI endpoint hit. Checking {RULES_FILE_PATH}")
+    logger.debug(f"Received userItems: {userItems}")
+    
     if not os.path.exists(RULES_FILE_PATH):
-        logger.warning(f"RULES_FILE_PATH does NOT exist: {RULES_FILE_PATH}")
+        logger.error(f"RULES_FILE_PATH does NOT exist: {RULES_FILE_PATH}")
         raise HTTPException(status_code=404, detail="Rules not yet generated or file not found.")
+    
     try:
         with open(RULES_FILE_PATH, "r") as file:
             rules_content = file.read()
             if not rules_content.strip():
-                logger.warning(f"RULES_FILE_PATH is empty or only whitespace.")
+                logger.warning(f"RULES_FILE_PATH is empty or only whitespace: {RULES_FILE_PATH}")
                 return {"recommendations": []}
             rules = json.loads(rules_content)
             logger.info(f"Successfully parsed {len(rules)} rules for recommendations.")
@@ -262,31 +316,44 @@ async def get_recommendations(userItems: str = None):
         logger.error(f"JSON Decode Error reading {RULES_FILE_PATH}: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Failed to parse rules file: Invalid JSON: {e}")
     except Exception as e:
-        logger.error(f"Generic error in get_recommendations: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail=f"An unexpected error occurred: {str(e)}")
+        logger.error(f"Error reading {RULES_FILE_PATH}: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Failed to read rules file: {str(e)}")
 
-    user_items_list = json.loads(userItems) if userItems else []
+    try:
+        user_items_list = json.loads(userItems) if userItems else []
+        logger.debug(f"Parsed userItems: {user_items_list}")
+    except json.JSONDecodeError as e:
+        logger.error(f"Failed to parse userItems: {e}", exc_info=True)
+        raise HTTPException(status_code=400, detail=f"Invalid userItems format: {str(e)}")
+
     ts = ThompsonSampling(db_connection)
+    try:
+        await db_connection.ensure_connection()  # Ensure connection before Thompson Sampling
+        if not user_items_list:  # Empty cart, select a recommendation
+            if rules:
+                selected_rule = await ts.select_recommendation(rules)
+                logger.info(f"Selected rule for empty cart: {selected_rule}")
+                return {"recommendations": [selected_rule] if selected_rule else []}
+            logger.warning("No rules available for empty cart recommendation")
+            return {"recommendations": []}
 
-    if not user_items_list:  # Empty cart, select a recommendation
-        if rules:
-            selected_rule = ts.select_recommendation(rules)
-            logger.info(f"Selected rule for empty cart: {selected_rule}")
+        # Filter rules based on user items
+        filtered_rules = [
+            rule for rule in rules
+            if set(user_items_list).issuperset(set(rule["antecedents"]))
+        ]
+        logger.info(f"Filtered {len(filtered_rules)} rules based on user items: {user_items_list}")
+
+        # Select a recommendation using Thompson Sampling
+        if filtered_rules:
+            selected_rule = await ts.select_recommendation(filtered_rules)
+            logger.info(f"Selected rule for user items: {selected_rule}")
             return {"recommendations": [selected_rule] if selected_rule else []}
+        logger.warning(f"No matching rules found for user items: {user_items_list}")
         return {"recommendations": []}
-
-    # Filter rules based on user items
-    filtered_rules = [
-        rule for rule in rules
-        if set(user_items_list).issuperset(set(rule["antecedents"]))
-    ]
-    logger.info(f"Filtered {len(filtered_rules)} rules based on user items: {user_items_list}")
-
-    # Select a recommendation using Thompson Sampling
-    if filtered_rules:
-        selected_rule = ts.select_recommendation(filtered_rules)
-        return {"recommendations": [selected_rule] if selected_rule else []}
-    return {"recommendations": []}
+    except Exception as e:
+        logger.error(f"Error in Thompson Sampling or rule selection: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Failed to generate recommendations: {str(e)}")
 
 class FeedbackRequest(BaseModel):
     recommendation_id: str
@@ -298,7 +365,8 @@ async def submit_feedback(feedback: FeedbackRequest):
     logger.info(f"POST /api/recommendation-feedback for {feedback.recommendation_id}")
     ts = ThompsonSampling(db_connection)
     try:
-        ts.update_stats(feedback.recommendation_id, feedback.success)
+        await db_connection.ensure_connection()
+        await ts.update_stats(feedback.recommendation_id, feedback.success)
         return {"message": "Feedback recorded successfully"}
     except Exception as e:
         logger.error(f"Failed to record feedback: {e}", exc_info=True)
